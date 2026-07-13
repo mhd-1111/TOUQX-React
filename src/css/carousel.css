@@ -1,0 +1,211 @@
+/* ---------- Section Header ---------- */
+.section-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:15px;
+
+}
+
+/* ---------- Arrow Buttons and Gradient Overlays ---------- */
+
+.row-wrapper{
+
+    position:relative;
+
+}
+
+
+.left-gradient,
+.right-gradient{
+
+    position:absolute;
+
+    top:0;
+
+    width:90px;
+
+    height:100%;
+
+    display:flex;
+
+    align-items:center;
+
+    z-index:50;
+
+    opacity:0;
+
+    transition:.35s;
+
+    pointer-events:none;
+
+}
+
+.left-gradient{
+
+    left:0;
+
+    justify-content:flex-start;
+
+    background:linear-gradient(
+        to right,
+        rgba(0,0,0,.92),
+        transparent
+    );
+
+}
+
+.right-gradient{
+
+    right:0;
+
+    justify-content:flex-end;
+
+    background:linear-gradient(
+        to left,
+        rgba(0,0,0,.92),
+        transparent
+    );
+
+}
+.scroll-left,
+.scroll-right{
+
+    width:48px;
+
+    height:48px;
+
+    margin:18px;
+
+    border:none;
+
+    border-radius:50%;
+
+    background:rgba(255,255,255,.12);
+
+    backdrop-filter:blur(12px);
+
+    color:white;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+}
+
+.scroll-left:hover,
+.scroll-right:hover{
+
+    background:#e50914;
+
+    transform:scale(1.12);
+
+}
+
+.left-gradient,
+.right-gradient{
+
+    opacity:0;
+
+    visibility:hidden;
+
+    pointer-events:none;
+
+    transition:
+        opacity .25s ease,
+        visibility .25s ease;
+
+}
+.row-wrapper:hover .left-gradient.can-scroll,
+.row-wrapper:hover .right-gradient.can-scroll{
+
+    opacity:1;
+
+    visibility:visible;
+
+    pointer-events:auto;
+
+}
+
+/*fetching more than 20 movies */
+
+.view-all-card{
+
+    width:180px;
+
+    height:270px;
+
+    flex-shrink:0;
+
+    border-radius:18px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+    align-items:center;
+
+    background:linear-gradient(
+        135deg,
+        #161616,
+        #252525
+
+    );
+
+    border:2px solid rgba(255,255,255,.08);
+
+    color:white;
+
+    cursor:pointer;
+
+    transition:.35s;
+
+    opacity:0;
+
+    transform:translateX(40px);
+
+    pointer-events:none;
+
+}
+
+.view-all-card:hover{
+
+    transform:translateY(-8px);
+
+    border-color:#e50914;
+
+    background:#1d1d1d;
+
+}
+
+.view-all-card i{
+
+    font-size:42px;
+
+    color:#e50914;
+
+    margin-bottom:15px;
+
+}
+
+.view-all-card h3{
+
+    font-size:18px;
+
+}
+
+.view-all-card.show{
+
+    opacity:1;
+
+    transform:translateX(0);
+
+    pointer-events:auto;
+
+}

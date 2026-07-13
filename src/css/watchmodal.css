@@ -1,0 +1,129 @@
+.watch-modal{
+
+    position:fixed;
+
+    inset:0;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    background:rgba(0,0,0,.78);
+
+    backdrop-filter:blur(10px);
+
+    opacity:0;
+
+    visibility:hidden;
+
+    transition:.3s ease;
+
+    z-index:99999;
+
+}
+
+.watch-modal.active{
+
+    opacity:1;
+
+    visibility:visible;
+
+}
+
+.watch-card{
+
+    width:480px;
+
+    max-width:90vw;
+
+    background:#141414;
+
+    border:1px solid rgba(255,255,255,.08);
+
+    border-radius:22px;
+
+    padding:40px;
+
+    text-align:center;
+
+    box-shadow:0 20px 60px rgba(0,0,0,.6);
+
+    animation:pop .28s ease;
+
+}
+
+@keyframes pop{
+
+    from{
+
+        transform:scale(.9);
+
+        opacity:0;
+
+    }
+
+    to{
+
+        transform:scale(1);
+
+        opacity:1;
+
+    }
+
+}
+
+.watch-icon{
+
+    font-size:64px;
+
+    color:#e50914;
+
+    margin-bottom:18px;
+
+}
+
+.watch-card h2{
+
+    color:#e50914;
+
+    margin-bottom:18px;
+
+}
+
+.watch-card p{
+
+    color:#d2d2d2;
+
+    line-height:1.7;
+
+    margin-bottom:30px;
+
+}
+
+.watch-card button{
+
+    padding:14px 34px;
+
+    border:none;
+
+    border-radius:12px;
+
+    background:#e50914;
+
+    color:white;
+
+    font-size:16px;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+}
+
+.watch-card button:hover{
+
+    transform:scale(1.05);
+
+}
