@@ -2,12 +2,12 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import PlayerPage from './pages/PlayerPage';
 import ViewAllPage from './pages/ViewAllPage';
-
 import Ferrofluid from './components/Ferrofluid';
+import { UserActivityProvider } from './context/UserActivityContext';
 
 function App() {
   return (
-    <>
+    <UserActivityProvider>
       <div className="global-fluid-bg">
         <Ferrofluid
           colors={["#cb0000","#c00000","#bf0000"]}
@@ -35,7 +35,7 @@ function App() {
           </Routes>
         </Router>
       </div>
-    </>
+    </UserActivityProvider>
   );
 }
 

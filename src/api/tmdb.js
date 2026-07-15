@@ -1,7 +1,6 @@
 import { TOKEN, BASE_URL } from '../config';
 
 export const fetchTMDB = async (endpoint) => {
-  const separator = endpoint.includes('?') ? '&' : '?';
   const url = `${BASE_URL}${endpoint}`;
   
   try {

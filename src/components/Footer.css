@@ -1,0 +1,31 @@
+.site-footer {
+  width: 100%;
+  padding: 50px 20px 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 60px;
+  background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%);
+}
+
+.footer-inner {
+  text-align: center;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer-text {
+  font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+  color: rgba(200, 200, 200, 0.75);
+  letter-spacing: 0.5px;
+  line-height: 1.6;
+}
+
+.footer-cursor {
+  color: #e50914;
+  font-weight: bold;
+}

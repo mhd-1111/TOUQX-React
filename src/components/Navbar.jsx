@@ -17,23 +17,23 @@ const Navbar = ({ showNavLinks = false, onNavClick }) => {
       <nav className="navbar">
         <div className="navbar-left">
           {showNavLinks && (
-            <i 
-              className="fas fa-bars mobile-menu-btn" 
+            <i
+              className="fas fa-bars mobile-menu-btn"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             ></i>
           )}
           <Link to="/" className="navbar-brand">
-            <img src="/images/touqx_logo.png" alt="TOUQX Logo" className="logo" />
+            <img src="/images/touqx_logo.svg" alt="TOUQX Logo" className="logo" />
           </Link>
         </div>
-        
+
         {showNavLinks && (
           <div className={`navbar-nav ${isMobileMenuOpen ? 'active' : ''}`}>
             <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); handleNavClick('home'); }}>Home</a>
             <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); handleNavClick('topRatedTvSection'); }}>TV Shows</a>
             <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); handleNavClick('trendingSection'); }}>Movies</a>
             <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); handleNavClick('popularSection'); }}>New & Popular</a>
-            <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); alert("My List feature coming soon!"); }}>My List</a>
+            <Link to="/viewall?list=saved" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>My List</Link>
           </div>
         )}
 

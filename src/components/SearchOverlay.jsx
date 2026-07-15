@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchTMDB } from '../api/tmdb';
+import { getMoviePosterSrc } from '../utils/posterUtils';
 
 const SearchOverlay = ({ isActive, onClose }) => {
   const [query, setQuery] = useState('');
@@ -57,9 +58,7 @@ const SearchOverlay = ({ isActive, onClose }) => {
         <div id="searchResults" className="search-results">
           {results.map((item) => {
             const title = item.title || item.name;
-            const poster = item.poster_path
-              ? `https://image.tmdb.org/t/p/w342${item.poster_path}`
-              : '/images/no-poster.png'; // Will fix later if missing
+            const poster = getMoviePosterSrc(item, 'w342');
             const year = (item.release_date || item.first_air_date || '').slice(0, 4);
             const type = item.media_type === 'movie' ? 'Movie' : 'TV Show';
 

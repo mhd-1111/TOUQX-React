@@ -4,6 +4,8 @@ import HeroSlider from '../components/HeroSlider';
 import ContentRow from '../components/ContentRow';
 import MovieCard from '../components/MovieCard';
 import ViewAllCard from '../components/ViewAllCard';
+import ShinyText from '../components/ShinyText';
+import Footer from '../components/Footer';
 import { fetchTMDB } from '../api/tmdb';
 
 const ROW_CONFIGS = [
@@ -31,7 +33,9 @@ const MovieRow = ({ config }) => {
   return (
     <section id={config.id} className="content-section">
       <div className="section-header">
-        <h2 className="section-title">{config.title}</h2>
+        <h2 className="section-title">
+          <ShinyText text={config.title} speed={2.5} shineColor="#ff4d4d" />
+        </h2>
       </div>
       <ContentRow id={config.id + 'Row'}>
         {movies.map(movie => (
@@ -65,6 +69,8 @@ const HomePage = () => {
           <MovieRow key={config.id} config={config} />
         ))}
       </div>
+      
+      <Footer />
     </div>
   );
 };

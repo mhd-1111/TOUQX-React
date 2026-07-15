@@ -3,13 +3,16 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import WatchModal from '../components/WatchModal';
 import ContentRow from '../components/ContentRow';
-import SimilarCard from '../components/SimilarCard';
+import MovieCard from '../components/MovieCard';
 import CastCard from '../components/CastCard';
 import ReviewCard from '../components/ReviewCard';
 import SeasonCard from '../components/SeasonCard';
 import EpisodeCard from '../components/EpisodeCard';
+import ShinyText from '../components/ShinyText';
+import Footer from '../components/Footer';
 import { fetchTMDB } from '../api/tmdb';
-import { POSTER_500 } from '../config';
+import { getMoviePosterSrc, getTmdbPosterUrl } from '../utils/posterUtils';
+import { useUserActivity } from '../context/UserActivityContext';
 
 const LOCAL_MOVIES = {
   "the-boys": {
@@ -59,6 +62,7 @@ const LOCAL_MOVIES = {
 const PlayerPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { isLiked, isSaved, toggleLike, toggleSave } = useUserActivity();
   const localMovieId = searchParams.get('movie');
   const tmdbId = searchParams.get('tmdb');
   const mediaType = searchParams.get('type') || 'movie';
@@ -84,6 +88,26 @@ const PlayerPage = () => {
   const episodeSectionRef = useRef(null);
 
   useEffect(() => {
+    // ── Reset all stale state before loading the new movie ──────────────────────
+    // Root cause of the stale-data bug: without this reset, the merge logic
+    //   title: prev?.title || data.title    (always kept prev — the old movie)
+    // persisted the previous movie's title/poster/cast across navigations.
+    // Resetting to null here forces the "Loading..." gate and clean TMDB merges.
+    setMovie(null);
+    setTrailerKey("");
+    setSimilar([]);
+    setCast([]);
+    setReviews([]);
+    setDirector(null);
+    setDirectorMovies([]);
+    setStudio(null);
+    setStudioMovies([]);
+    setCollection(null);
+    setEpisodes([]);
+    setOpenedSeason(null);
+    setIsPlayingTrailer(false);
+    // ────────────────────────────────────────────────────────────────────────────
+
     window.scrollTo(0, 0);
 
     if (localMovieId) {
@@ -97,14 +121,22 @@ const PlayerPage = () => {
           video: localData.video,
         });
       }
-    } else if (tmdbId) {
+    }
+
+    if (tmdbId) {
       // Load TMDB Data
       fetchTMDB(`/${mediaType}/${tmdbId}`)
         .then(data => {
-          setMovie({
-            isLocal: false,
-            ...data
-          });
+          setMovie(prev => ({
+            ...(prev || {}),
+            ...data,
+            // Keep local fields for hero movies; always prefer TMDB poster_path
+            title: prev?.title || data.title || data.name,
+            description: prev?.description || data.overview,
+            poster_path: data.poster_path || prev?.poster_path || null,
+            backdrop_path: data.backdrop_path || null,
+            poster: prev?.poster || null,
+          }));
 
           // Studio
           if (data.production_companies && data.production_companies.length > 0) {
@@ -123,7 +155,7 @@ const PlayerPage = () => {
         })
         .catch(console.error);
 
-      // Videos
+      // Videos — always fetch TMDB trailer when tmdbId is available (even for hero/local movies)
       fetchTMDB(`/${mediaType}/${tmdbId}/videos`)
         .then(data => {
           const trailer = data.results.find(v => v.type === "Trailer" && v.site === "YouTube") ||
@@ -173,19 +205,8 @@ const PlayerPage = () => {
   }, [localMovieId, tmdbId, mediaType]);
 
   const handlePlayTrailer = () => {
-    if (movie?.isLocal) {
-      setIsPlayingTrailer(true);
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.play().catch(() => {});
-          videoRef.current.setAttribute("controls", "");
-        }
-      }, 100);
-    } else {
-      if (!trailerKey) {
-        alert("Trailer not available.");
-        return;
-      }
+    // Always prefer the TMDB YouTube trailer when available
+    if (trailerKey) {
       if (fireTransitionRef.current) {
         fireTransitionRef.current.classList.add("active");
         setTimeout(() => {
@@ -194,13 +215,25 @@ const PlayerPage = () => {
       } else {
         setIsPlayingTrailer(true);
       }
+    } else if (movie?.video) {
+      // Fall back to local video if no TMDB trailer
+      setIsPlayingTrailer(true);
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.play().catch(() => {});
+          videoRef.current.setAttribute("controls", "");
+        }
+      }, 100);
+    } else {
+      alert("Trailer not available.");
     }
   };
 
   const handleCloseTrailer = () => {
     setIsPlayingTrailer(false);
     if (fireTransitionRef.current) fireTransitionRef.current.classList.remove("active");
-    if (movie?.isLocal && videoRef.current) {
+    // Pause local video if it's playing
+    if (!trailerKey && movie?.video && videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
       videoRef.current.removeAttribute("controls");
@@ -227,13 +260,17 @@ const PlayerPage = () => {
 
   if (!movie) return <div style={{ color: 'white', padding: '100px' }}>Loading...</div>;
 
-  const title = movie.isLocal ? movie.title : (movie.title || movie.name);
-  const description = movie.isLocal ? movie.description : movie.overview;
-  const poster = movie.isLocal ? movie.poster : `https://image.tmdb.org/t/p/w780${movie.poster_path}`;
-  
+  // Resolve display fields — works for pure local, pure TMDB, and hybrid (hero) movies
+  const title = movie.title || movie.name || '';
+  const description = movie.description || movie.overview || '';
+  // Resolve poster: always prefer the TMDB portrait poster over local hero backgrounds
+  const poster = getMoviePosterSrc(movie, 'w780');
+
+  // TMDB data is available when we have vote_average or genres (i.e. data was fetched)
+  const hasTmdbMeta = !!(movie.vote_average !== undefined || movie.genres);
   let rating, year, runtime, genres;
-  if (!movie.isLocal) {
-    rating = `⭐ ${movie.vote_average.toFixed(1)}`;
+  if (hasTmdbMeta) {
+    rating = `⭐ ${movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A'}`;
     const releaseDate = movie.release_date || movie.first_air_date;
     year = `📅 ${releaseDate ? releaseDate.slice(0,4) : "N/A"}`;
     if (mediaType === "movie") {
@@ -243,7 +280,7 @@ const PlayerPage = () => {
       const eps = movie.number_of_episodes || 0;
       runtime = `📺 ${seasons} Season${seasons !== 1 ? 's' : ''} • ${eps} Episode${eps !== 1 ? 's' : ''}`;
     }
-    genres = `🎭 ${movie.genres?.map(g => g.name).join(" • ")}`;
+    genres = `🎭 ${movie.genres?.map(g => g.name).join(" • ") || '---'}`;
   } else {
     rating = "⭐ --"; year = "📅 ----"; runtime = "⏱ -- min"; genres = "🎭 ---";
   }
@@ -261,18 +298,20 @@ const PlayerPage = () => {
         <div className="trailer-container" style={{ display: isPlayingTrailer ? 'flex' : 'none' }}>
           <div className="fire-transition" ref={fireTransitionRef}></div>
           
-          {movie.isLocal ? (
-            <video id="movieTrailer" ref={videoRef} src={movie.video} poster={movie.poster} style={{ display: 'block' }} onEnded={handleCloseTrailer}></video>
-          ) : (
+          {/* Always prefer YouTube trailer when trailerKey is available */}
+          {trailerKey ? (
             <iframe
               id="youtubeTrailer"
               className={isPlayingTrailer ? 'show' : ''}
               src={isPlayingTrailer ? `https://www.youtube.com/embed/${trailerKey}?autoplay=1&rel=0&modestbranding=1&playsinline=1` : ''}
               allow="autoplay; encrypted-media"
               allowFullScreen
+              title="Trailer"
               style={{ display: isPlayingTrailer ? 'block' : 'none' }}
             ></iframe>
-          )}
+          ) : movie?.video ? (
+            <video id="movieTrailer" ref={videoRef} src={movie.video} poster={movie.poster} style={{ display: 'block' }} onEnded={handleCloseTrailer}></video>
+          ) : null}
           <button id="closeTrailerBtn" style={{ display: isPlayingTrailer ? 'flex' : 'none' }} onClick={handleCloseTrailer}>
             <i className="fa-solid fa-xmark"></i>
           </button>
@@ -289,14 +328,30 @@ const PlayerPage = () => {
         </div>
         <p id="movieDescription">{description}</p>
         
-        <button id="playTrailerBtn" onClick={handlePlayTrailer} disabled={!movie.isLocal && !trailerKey}>
-          ▶ {(!movie.isLocal && !trailerKey) ? "Trailer Unavailable" : "Play Trailer"}
+        <div className="player-actions">
+          <button 
+            className={`action-btn ${isLiked(movie.id || tmdbId) ? 'liked' : ''}`}
+            onClick={() => toggleLike({ ...movie, id: movie.id || tmdbId, tmdbType: mediaType })}
+          >
+            {isLiked(movie.id || tmdbId) ? '❤️ Liked' : '♡ Like'}
+          </button>
+          
+          <button 
+            className={`action-btn ${isSaved(movie.id || tmdbId) ? 'saved' : ''}`}
+            onClick={() => toggleSave({ ...movie, id: movie.id || tmdbId, tmdbType: mediaType })}
+          >
+            {isSaved(movie.id || tmdbId) ? '✔ Saved' : '💾 Save'}
+          </button>
+        </div>
+
+        <button id="playTrailerBtn" onClick={handlePlayTrailer} disabled={!trailerKey && !movie?.video}>
+          ▶ {(!trailerKey && !movie?.video) ? "Trailer Unavailable" : "Play Trailer"}
         </button>
         <button id="watchMovieBtn" onClick={() => setIsWatchModalActive(true)}>🎬 Watch Now</button>
 
-        {!movie.isLocal && mediaType === 'tv' && movie.seasons && (
+        {mediaType === 'tv' && movie.seasons && (
           <section className="season-section" style={{ display: 'block' }}>
-            <h2 id="seasonTitle">📺 Seasons</h2>
+            <h2 id="seasonTitle"><ShinyText text="📺 Seasons" speed={2} shineColor="#ff4d4d" /></h2>
             <div id="seasonRow" className="season-row">
               {movie.seasons.map(s => (
                 <SeasonCard key={s.id} season={s} isActive={openedSeason === s.season_number} onClick={() => handleSeasonClick(s.season_number)} />
@@ -305,9 +360,9 @@ const PlayerPage = () => {
           </section>
         )}
 
-        {!movie.isLocal && mediaType === 'tv' && openedSeason !== null && (
+        {mediaType === 'tv' && openedSeason !== null && (
           <section className="episode-section" ref={episodeSectionRef} style={{ display: 'block' }}>
-            <h2 id="episodeTitle">Season {openedSeason} Episodes</h2>
+            <h2 id="episodeTitle"><ShinyText text={`Season ${openedSeason} Episodes`} speed={2} shineColor="#ff4d4d" /></h2>
             <div id="episodeRow" className="episode-row">
               {episodes.length === 0 ? "Loading..." : episodes.map(ep => (
                 <EpisodeCard key={ep.id} episode={ep} onPlayClick={() => setIsWatchModalActive(true)} />
@@ -316,64 +371,66 @@ const PlayerPage = () => {
           </section>
         )}
 
-        {!movie.isLocal && cast.length > 0 && (
+        {cast.length > 0 && (
           <section className="cast-section">
-            <div className="section-header"><h2>Top Cast</h2></div>
+            <div className="section-header"><h2><ShinyText text="Top Cast" speed={2} shineColor="#ff4d4d" /></h2></div>
             <ContentRow id="castRow">
               {cast.map(c => <CastCard key={c.id} actor={c} />)}
             </ContentRow>
           </section>
         )}
 
-        {!movie.isLocal && (
+        {tmdbId && (
           <section className="reviews-section">
-            <h2>User Reviews</h2>
+            <h2><ShinyText text="User Reviews" speed={2} shineColor="#ff4d4d" /></h2>
             <div id="reviewsContainer">
               {reviews.length === 0 ? <p>No reviews available.</p> : reviews.map(r => <ReviewCard key={r.id} review={r} />)}
             </div>
           </section>
         )}
 
-        {!movie.isLocal && similar.length > 0 && (
+        {similar.length > 0 && (
           <section className="similar-section">
-            <div className="section-header"><h2>More Like This</h2></div>
+            <div className="section-header"><h2><ShinyText text="More Like This" speed={2} shineColor="#ff4d4d" /></h2></div>
             <ContentRow id="similarMovies">
-              {similar.map(m => <SimilarCard key={m.id} item={m} />)}
+              {similar.map(m => <MovieCard key={m.id} movie={m} />)}
             </ContentRow>
           </section>
         )}
 
-        {!movie.isLocal && studio && studioMovies.length > 0 && (
+        {studio && studioMovies.length > 0 && (
           <section id="studioSection" className="studio-section">
-            <div className="section-header"><h2 id="studioTitle">🎬 Explore {studio.name}</h2></div>
+            <div className="section-header"><h2 id="studioTitle"><ShinyText text={`🎨 Explore ${studio.name}`} speed={2} shineColor="#ff4d4d" /></h2></div>
             <ContentRow id="studioMovies">
-              {studioMovies.map(m => <SimilarCard key={m.id} item={m} />)}
+              {studioMovies.map(m => <MovieCard key={m.id} movie={m} />)}
             </ContentRow>
           </section>
         )}
 
-        {!movie.isLocal && collection && (
+        {collection && (
           <section id="collectionSection" className="collection-section">
-            <div className="section-header"><h2 id="collectionTitle">{collection.name}</h2></div>
+            <div className="section-header"><h2 id="collectionTitle"><ShinyText text={collection.name} speed={2} shineColor="#ff4d4d" /></h2></div>
             <ContentRow id="collectionRow">
-              {collection.parts.filter(m => m.poster_path && m.id != tmdbId).map(m => <SimilarCard key={m.id} item={m} />)}
+              {collection.parts.filter(m => m.poster_path && m.id != tmdbId).map(m => <MovieCard key={m.id} movie={m} />)}
             </ContentRow>
           </section>
         )}
 
-        {!movie.isLocal && director && directorMovies.length > 0 && (
+        {director && directorMovies.length > 0 && (
           <section id="directorSection" className="director-section">
             <div className="section-header">
-              <h2 id="directorTitle">{mediaType === 'movie' ? `Films by ${director.name}` : `More from ${director.name}`}</h2>
+              <h2 id="directorTitle"><ShinyText text={mediaType === 'movie' ? `Films by ${director.name}` : `More from ${director.name}`} speed={2} shineColor="#ff4d4d" /></h2>
             </div>
             <ContentRow id="directorRow">
-              {directorMovies.map(m => <SimilarCard key={m.id} item={m} />)}
+              {directorMovies.map(m => <MovieCard key={m.id} movie={m} />)}
             </ContentRow>
           </section>
         )}
       </div>
 
       <WatchModal isActive={isWatchModalActive} onClose={() => setIsWatchModalActive(false)} />
+      
+      <Footer />
     </>
   );
 };
