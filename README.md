@@ -10,7 +10,11 @@ Discover trending movies and TV shows, explore detailed information powered by T
 
 </div>
 
+## 📸 Screenshot
 
+
+![Home](<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/2b5aaaf6-3d31-4f0c-8ef2-bf958c3eb60c" />
+.png)
 
 # ✨ Features
 
