@@ -13,8 +13,15 @@ Discover trending movies and TV shows, explore detailed information powered by T
 ## 📸 Screenshot
 
 
-![Home](<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/2b5aaaf6-3d31-4f0c-8ef2-bf958c3eb60c" />
-.png)
+(<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/2b5aaaf6-3d31-4f0c-8ef2-bf958c3eb60c" />)
+( <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/2b8ecd87-3910-4d3b-8975-d50f9c9a3231" />
+)
+(<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/5f9a6d55-f789-4da9-8845-f3aef7cce51d" />
+)
+(<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/dc1b6e9e-41c0-4628-b444-6424f9d767c5" />
+)
+(<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/8b94c5dd-e27f-47fe-92c2-29a1d70ef917" />
+)
 
 # ✨ Features
 
