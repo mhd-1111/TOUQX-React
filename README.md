@@ -18,9 +18,11 @@ Discover trending movies and TV shows, explore detailed information powered by T
 
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/5f9a6d55-f789-4da9-8845-f3aef7cce51d" />
 
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/dc1b6e9e-41c0-4628-b444-6424f9d767c5" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/04afc0b9-eb0f-4ec0-999b-6b0ea174256d" />
 
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/8b94c5dd-e27f-47fe-92c2-29a1d70ef917" />
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/44122345-6aa0-460f-84b7-0aade30e5af4" />
+
 
 
 # ✨ Features
